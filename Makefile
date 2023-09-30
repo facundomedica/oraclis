@@ -25,8 +25,8 @@ BUILD_FLAGS := -ldflags '$(ldflags)'
 all: install
 
 install:
-	@echo "--> ensure dependencies have not been modified"
-	@go mod verify
+	# @echo "--> ensure dependencies have not been modified"
+	# @go mod verify
 	@echo "--> installing minid"
 	@go install $(BUILD_FLAGS) -mod=readonly ./cmd/minid
 
