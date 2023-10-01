@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
 
@@ -30,6 +31,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	oracle_abci "github.com/facundomedica/oracle/abci"
+	oraclekeeper "github.com/facundomedica/oracle/keeper"
+	"github.com/facundomedica/oracle/mockprovider"
 
 	_ "cosmossdk.io/api/cosmos/tx/config/v1"          // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth"           // import for side-effects
@@ -69,6 +73,7 @@ type MiniApp struct {
 	StakingKeeper         *stakingkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
+	OracleKeeper          oraclekeeper.Keeper
 
 	// simulation manager
 	sm *module.SimulationManager
@@ -128,9 +133,30 @@ func NewMiniApp(
 		&app.StakingKeeper,
 		&app.DistrKeeper,
 		&app.ConsensusParamsKeeper,
+		&app.OracleKeeper,
 	); err != nil {
 		return nil, err
 	}
+
+	voteExtHandler := oracle_abci.NewVoteExtHandler(
+		logger,
+		time.Second,
+		map[string]oracle_abci.Provider{
+			"mock": mockprovider.NewMockProvider(),
+		},
+		map[string][]oraclekeeper.CurrencyPair{
+			"mock": {
+				{Base: "ATOM", Quote: "USD"},
+				{Base: "OSMO", Quote: "USD"},
+			},
+		},
+		app.OracleKeeper,
+	)
+
+	baseAppOptions = append(baseAppOptions, func(ba *baseapp.BaseApp) {
+		ba.SetExtendVoteHandler(voteExtHandler.ExtendVoteHandler())
+		ba.SetVerifyVoteExtensionHandler(voteExtHandler.VerifyVoteExtensionHandler())
+	})
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
