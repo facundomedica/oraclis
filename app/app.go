@@ -12,6 +12,7 @@ import (
 	"cosmossdk.io/core/appconfig"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -153,9 +154,18 @@ func NewMiniApp(
 		app.OracleKeeper,
 	)
 
+	propHandler := oracle_abci.NewProposalHandler(
+		logger,
+		app.OracleKeeper,
+		app.StakingKeeper,
+	)
+
 	baseAppOptions = append(baseAppOptions, func(ba *baseapp.BaseApp) {
 		ba.SetExtendVoteHandler(voteExtHandler.ExtendVoteHandler())
 		ba.SetVerifyVoteExtensionHandler(voteExtHandler.VerifyVoteExtensionHandler())
+		ba.SetPrepareProposal(propHandler.PrepareProposal())
+		ba.SetProcessProposal(propHandler.ProcessProposal())
+		ba.SetPreBlocker(propHandler.PreBlocker)
 	})
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
