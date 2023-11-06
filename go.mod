@@ -5,7 +5,6 @@ go 1.21
 toolchain go1.21.0
 
 replace (
-
 	github.com/facundomedica/oracle => ../oracle
 	// Fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	// TODO Remove it: https://github.com/cosmos/cosmos-sdk/issues/10409
@@ -28,7 +27,7 @@ require (
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20230929125205-1cbae0dd16a5
 	github.com/facundomedica/oracle v0.0.0-00010101000000-000000000000
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.16.0
 )
 
